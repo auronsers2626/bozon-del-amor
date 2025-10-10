@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Buzón del Coso</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1 id="titulo">Buzón del Coso</h1>
+
+  <div id="contenedor">
+    <img id="buzon" src="buzon.png" alt="Buzón cerrado">
+    
+    <div id="carta" class="oculto">
+      <div id="contenido-carta">
+        <p>
+          Mi amor:<br><br>
+          No existen palabras, ni cartas ni correos que alcancen para decirte cuánto te amo mi cosa. 
+          Eres lo mejor que me ha pasado en la vida y jamás dejaré de recordártelo. 
+          Cada día contigo es un regalo que no dejo de agradecer.<br><br>
+          Tu risa, tus muequitas, tu forma de amarme es lo que me inspira cada día.<br><br>
+          Esta carta es solo una pequeña porción de todo lo que tengo para decirte. 
+          Y aunque el papel no abrace, espero que estas palabras te lleguen como un abrazo suave 
+          y como un te amo que no se cansa de repetirse.<br><br>
+          Te amo mucho mi Cosota. Gracias por elegirme.
+        </p>
+        <button id="borrar">Borrar</button>
+      </div>
+    </div>
+
+    <p id="mensaje"></p>
+    <div id="contador"></div>
+  </div>
+
+  <script>
+    const buzón = document.getElementById("buzon");
+    const carta = document.getElementById("carta");
+    const borrar = document.getElementById("borrar");
+    const mensaje = document.getElementById("mensaje");
+    const contador = document.getElementById("contador");
+
+    const TIEMPO_ESPERA = 24 * 60 * 60 * 1000;
+
+    function iniciarContador() {
+      const ahora = Date.now();
+      localStorage.setItem("siguienteCarta", ahora + TIEMPO_ESPERA);
+      actualizarEstado();
+    }
+
+    function actualizarEstado() {
+      const siguiente = localStorage.getItem("siguienteCarta");
+      const ahora = Date.now();
+
+      if (!siguiente || ahora >= siguiente) {
+        mensaje.textContent = "¡Tienes una nueva carta en el buzón!";
+        contador.textContent = "";
+        buzón.src = "buzon.png";
+        buzón.style.pointerEvents = "auto";
+        buzón.style.opacity = "1";
+        carta.classList.add("oculto");
+      } else {
+        mensaje.textContent = "Carta recogida. Vuelve en 24 horas.";
+        buzón.src = "buzon.png";
+        buzón.style.pointerEvents = "none";
+        buzón.style.opacity = "0.6";
+        carta.classList.add("oculto");
+        actualizarContador(siguiente - ahora);
+      }
+    }
+
+    function actualizarContador(tiempoRestante) {
+      function formato(t) {
+        const h = Math.floor(t / 3600);
+        const m = Math.floor((t % 3600) / 60);
+        const s = Math.floor(t % 60);
+        return `${h}h ${m}m ${s}s`;
+      }
+
+      const intervalo = setInterval(() => {
+        const siguiente = localStorage.getItem("siguienteCarta");
+        const ahora = Date.now();
+        const restante = Math.floor((siguiente - ahora) / 1000);
+
+        if (restante <= 0) {
+          clearInterval(intervalo);
+          actualizarEstado();
+        } else {
+          contador.textContent = `⏳ ${formato(restante)} restantes`;
+        }
+      }, 1000);
+    }
+
+    buzón.addEventListener("click", () => {
+      carta.classList.remove("oculto");
+      buzón.style.display = "none";
+    });
+
+    borrar.addEventListener("click", () => {
+      carta.classList.add("oculto");
+      buzón.style.display = "block";
+      buzón.src = "buzon.png";
+      iniciarContador();
+    });
+
+    actualizarEstado();
+  </script>
+</body>
+</html>
